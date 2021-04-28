@@ -15,8 +15,13 @@ def activation_fn(x):
     return nn.swish(x)
 
 
-def conv(x, filters, kernel_size=1, strides=1):
-    x = layers.Conv2D(filters, kernel_size, strides, 'same', use_bias=False,
+def conv(x, filters, k=1, s=1):
+    if s == 2:
+        x = layers.ZeroPadding2D(((1, 0), (1, 0)))(x)
+        padding = 'valid'
+    else:
+        padding = 'same'
+    x = layers.Conv2D(filters, k, s, padding, use_bias=False,
                       kernel_initializer=initializer, kernel_regularizer=l2)(x)
     x = layers.BatchNormalization(momentum=0.03)(x)
     x = layers.Activation(activation_fn)(x)
