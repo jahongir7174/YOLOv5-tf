@@ -1,7 +1,6 @@
 import math
 
 import tensorflow as tf
-from tensorflow import nn
 from tensorflow.keras import backend
 from tensorflow.keras import layers
 
@@ -9,10 +8,6 @@ from utils import config
 
 initializer = tf.random_normal_initializer(stddev=0.01)
 l2 = tf.keras.regularizers.l2(4e-5)
-
-
-def activation_fn(x):
-    return nn.swish(x)
 
 
 def conv(x, filters, k=1, s=1):
@@ -24,7 +19,7 @@ def conv(x, filters, k=1, s=1):
     x = layers.Conv2D(filters, k, s, padding, use_bias=False,
                       kernel_initializer=initializer, kernel_regularizer=l2)(x)
     x = layers.BatchNormalization(momentum=0.03)(x)
-    x = layers.Activation(activation_fn)(x)
+    x = layers.Activation(tf.nn.swish)(x)
     return x
 
 
@@ -57,7 +52,7 @@ def build_model(training=True):
     width = config.width[config.versions.index(config.version)]
 
     inputs = layers.Input([config.image_size, config.image_size, 3])
-    x = nn.space_to_depth(inputs, 2)
+    x = tf.nn.space_to_depth(inputs, 2)
     x = conv(x, int(round(width * 64)), 3)
     x = conv(x, int(round(width * 128)), 3, 2)
     x = csp(x, int(round(width * 128)), int(round(depth * 3)))
@@ -73,9 +68,9 @@ def build_model(training=True):
     x = conv(x, int(round(width * 1024)), 3, 2)
     x = conv(x, int(round(width * 512)), 1, 1)
     x = layers.concatenate([x,
-                            nn.max_pool(x, 5, 1, 'SAME'),
-                            nn.max_pool(x, 9, 1, 'SAME'),
-                            nn.max_pool(x, 13, 1, 'SAME')])
+                            tf.nn.max_pool(x, 5,  1, 'SAME'),
+                            tf.nn.max_pool(x, 9,  1, 'SAME'),
+                            tf.nn.max_pool(x, 13, 1, 'SAME')])
     x = conv(x, int(round(width * 1024)), 1, 1)
     x = csp(x, int(round(width * 1024)), int(round(depth * 3)), False)
 
